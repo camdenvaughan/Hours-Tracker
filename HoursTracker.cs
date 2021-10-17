@@ -92,7 +92,7 @@ namespace Hours_Tracker
         private void ClockIn_Click(object sender, EventArgs e)
         {
             if (activeProject != null)
-                activeProject.OpenNewEntry(DateTime.Now);
+                activeProject.OpenNewSession(DateTime.Now);
             PrintProject(activeProject);
             SetButtons(activeProject);
             SaveFile();
@@ -104,7 +104,7 @@ namespace Hours_Tracker
         private void ClockOut_Click(object sender, EventArgs e)
         {
             if (activeProject != null)
-                activeProject.CloseEntry(DateTime.Now);
+                activeProject.CloseSession(DateTime.Now);
             PrintProject(activeProject);
             SetButtons(activeProject);
             SaveFile();
@@ -415,19 +415,17 @@ namespace Hours_Tracker
         {
             treeView1.Nodes.Clear();
 
-            List<EntryNode> entries = project.GetEntries();
-            for (int i = 0; i < entries.Count; i++)
+            List<Session> sessions = project.GetSessions();
+            for (int i = 0; i < sessions.Count; i++)
             {
-                treeView1.Nodes.Add("Entry " + (i + 1).ToString());
+                treeView1.Nodes.Add("Session " + (i + 1).ToString());
                 treeView1.Nodes[i].Nodes.Add("Start Time");
-                treeView1.Nodes[i].Nodes[0].Nodes.Add(entries[i].GetStartTime());
+                treeView1.Nodes[i].Nodes[0].Nodes.Add(sessions[i].GetStartTime());
                 treeView1.Nodes[i].Nodes.Add("Stop Time");
-                treeView1.Nodes[i].Nodes[1].Nodes.Add(entries[i].GetStopTime());
-                treeView1.Nodes[i].Nodes.Add("Total Entry Time");
-                treeView1.Nodes[i].Nodes[2].Nodes.Add(entries[i].GetTotalEntryTime());
+                treeView1.Nodes[i].Nodes[1].Nodes.Add(sessions[i].GetStopTime());
+                treeView1.Nodes[i].Nodes.Add("Total Session Time: " + sessions[i].GetTotalSessionTime());
             }
-            treeView1.Nodes.Add("Total Logged Time");
-            treeView1.Nodes[treeView1.Nodes.Count - 1].Nodes.Add(project.GetTotalTime());
+            treeView1.Nodes.Add("Total Logged Time: " + project.GetTotalTime());
         }
 
         //

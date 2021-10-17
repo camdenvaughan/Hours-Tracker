@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Hours_Tracker
 {
-    class EntryNode
+    class Session
     {
 
         public bool isActive { get; private set; }
@@ -14,14 +14,14 @@ namespace Hours_Tracker
 
         TimeSpan time;
 
-        public EntryNode(DateTime start, DateTime stop)
+        public Session(DateTime start, DateTime stop)
         {
             startTime = start;
             stopTime = stop;
             time = stop-start;
             isActive = false;
         }
-        public EntryNode(DateTime start)
+        public Session(DateTime start)
         {
             startTime = start;
             isActive = true;
@@ -50,17 +50,17 @@ namespace Hours_Tracker
 
         public string GetStopTime()
         {
-            return (isActive) ? "Entry is active, Clock Out to Set Stop Time" : stopTime.ToString();
+            return (isActive) ? "Session is active, Clock Out to Set Stop Time" : stopTime.ToString();
         }
 
-        public string GetTotalEntryTime()
+        public string GetTotalSessionTime()
         {
             return (isActive) ? "Entry is still active" : time.ToString();
         }
 
         public string GetSaveData(int index)
         {
-            string output = "Entry " + index.ToString();
+            string output = "Session " + index.ToString();
             output += "\nStart Time = \"" + startTime + "\"\n";
             if (!isActive)
                 output += "Stop Time = \"" + stopTime + "\"\n";
@@ -73,11 +73,9 @@ namespace Hours_Tracker
 
         string[] projectData;
 
-        List<EntryNode> entries = new List<EntryNode>();
+        List<Session> sessions = new List<Session>();
 
-        TimeSpan currentTotalHours;
-
-        EntryNode latestEntry;
+        Session latestSession;
 
         /* Constructors */
 
@@ -100,9 +98,9 @@ namespace Hours_Tracker
         {
             for(int i = 0; i < projectData.Length; i++)
             {
-                if (projectData[i].Contains("Entry"))
+                if (projectData[i].Contains("Session"))
                 {
-                    EntryNode entry;
+                    Session entry;
 
                     DateTime start;
                     DateTime stop;
@@ -126,35 +124,35 @@ namespace Hours_Tracker
                         int first = projectData[i].IndexOf("\"") + 1;
                         int last = projectData[i].LastIndexOf("\"");
                         DateTime.TryParse(projectData[i].Substring(first, last - first), out stop);
-                        entry = new EntryNode(start, stop);
+                        entry = new Session(start, stop);
                     }
                     else
                     {
-                        entry = new EntryNode(start);
+                        entry = new Session(start);
                     }
 
-                    entries.Add(entry);
-                    latestEntry = entry;
+                    sessions.Add(entry);
+                    latestSession = entry;
                 }
             }
         }
 
-        public void OpenNewEntry(DateTime start)
+        public void OpenNewSession(DateTime start)
         {
-            latestEntry = new EntryNode(start);
+            latestSession = new Session(start);
 
-            entries.Add(latestEntry);
+            sessions.Add(latestSession);
         }
 
-        public void CloseEntry(DateTime stop)
+        public void CloseSession(DateTime stop)
         {
-            latestEntry.SetStop(stop);
+            latestSession.SetStop(stop);
         }
 
         public bool IsActive()
         {
-            if (latestEntry != null)
-                return latestEntry.isActive;
+            if (latestSession != null)
+                return latestSession.isActive;
 
             return false;
         }
@@ -162,22 +160,22 @@ namespace Hours_Tracker
         public string GetTotalTime()
         {
             TimeSpan totalTime = new TimeSpan();
-            foreach (EntryNode entry in entries)
+            foreach (Session entry in sessions)
             {
                 totalTime += entry.GetTime();
             }
-            return (totalTime.Days * 24 + totalTime.Hours) + " Hours and " + currentTotalHours.Minutes + " Minutes.";
+            return (totalTime.Days * 24 + totalTime.Hours) + " Hours and " + totalTime.Minutes + " Minutes.";
 
         }
 
         public string[] GetSaveData()
         {
-            string[] output = new string[entries.Count + 2];
+            string[] output = new string[sessions.Count + 2];
 
             output[0] = "Project = *" + projectName + "*\n";
             for (int i = 1; i < output.Length - 1; i++)
             {
-                output[i] = entries[i - 1].GetSaveData(i-1);
+                output[i] = sessions[i - 1].GetSaveData(i-1);
             }
 
             output[output.Length - 1] = "END\n";
@@ -191,9 +189,9 @@ namespace Hours_Tracker
             return tempString;
         }
 
-        public List<EntryNode> GetEntries()
+        public List<Session> GetSessions()
         {
-            return entries;
+            return sessions;
         }
     }
 }

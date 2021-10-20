@@ -14,6 +14,7 @@ namespace Hours_Tracker
     public partial class HoursTracker : Form
     {
         string activeFilePath;
+        string configFilePath;
         List<Project> allProjects = new List<Project>();
         string header = "";
         Project activeProject;
@@ -41,6 +42,31 @@ namespace Hours_Tracker
             createProjectButton.Visible = false;
             projectTitleLabel.Visible = false;
             treeView1.Enabled = false;
+
+            configFilePath = System.IO.Path.GetDirectoryName(Application.ExecutablePath) + @"\hourstracker.config";
+
+            if (File.Exists(configFilePath))
+            {
+                string[] configText = File.ReadAllLines(configFilePath);
+
+                foreach (string line in configText)
+                {
+                    if (line.Contains("Last Opened ="))
+                    {
+                        int first = line.IndexOf("*") + 1;
+                        int last = line.LastIndexOf("*");
+                        string latestProject = line.Substring(first, last - first);
+                        activeFilePath = latestProject;
+                        if (File.Exists(activeFilePath))
+                        {
+                            LoadFile(latestProject);
+                            break;
+                        }
+
+                    }
+
+                }
+            }
         }
 
         //
@@ -194,20 +220,28 @@ namespace Hours_Tracker
 
                 activeFilePath = openFileDialog1.FileName;
 
-
-                string[] fileText = File.ReadAllLines(activeFilePath);
-
-                ParseFileContents(fileText);
-                projectSelector.Items.Clear();
-
-                if (allProjects.Count > 0)
-                    activeProject = allProjects[0];
-                else
-                    DisplayCreateProject();
-
-                RefreshProjectSelector();
-                ActivateItems();
+                LoadFile(activeFilePath);
             }
+        }
+
+        private void LoadFile(string path)
+        {
+            string[] fileText = File.ReadAllLines(activeFilePath);
+
+            ParseFileContents(fileText);
+            projectSelector.Items.Clear();
+
+            if (allProjects.Count > 0)
+                activeProject = allProjects[0];
+            else
+                DisplayCreateProject();
+
+            RefreshProjectSelector();
+            ActivateItems();
+
+            string buffer = "Last Opened = *" + activeFilePath + "*";
+
+            WriteToFile(buffer, configFilePath);
         }
 
         //
@@ -401,7 +435,12 @@ namespace Hours_Tracker
                 }
             }
 
-            FileStream fs = File.OpenWrite(activeFilePath);
+            WriteToFile(buffer, activeFilePath);
+        }
+
+        void WriteToFile(string buffer, string path)
+        {
+            FileStream fs = File.OpenWrite(path);
             fs.SetLength(0);
             byte[] data = new UTF8Encoding(true).GetBytes(buffer);
             fs.Write(data, 0, data.Length);
